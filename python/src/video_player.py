@@ -2,6 +2,7 @@
 
 from .video_library import VideoLibrary
 from .video_playlist import Playlist
+from.playback_manager import PlaybackManager
 import random
 
 class VideoPlayer:
@@ -10,8 +11,10 @@ class VideoPlayer:
     def __init__(self):
         self._video_library = VideoLibrary()
         self.all_playlists = Playlist()
-        self.is_playing = False
-        self.is_paused = False
+        self.playback = PlaybackManager()
+
+    def video_string(self, video):
+        return f"{video.title} ({video.video_id}) [{' '.join(video.tags)}]"
 
     def number_of_videos(self):
         num_videos = len(self._video_library.get_all_videos())
@@ -23,7 +26,7 @@ class VideoPlayer:
         videos.sort(key=lambda x: x.title)
         print("Here's a list of all available videos:")
         for video in videos:
-            print(f"{video.title} ({video.video_id}) [{' '.join(video.tags)}]")
+            print(self.video_string(video))
 
     def play_video(self, video_id):
         """Plays the respective video.
@@ -34,66 +37,61 @@ class VideoPlayer:
         if not video:
             print("Cannot play video: Video does not exist")
             return
-
-        if self.is_playing != False:
-            print(f"Stopping video: {self.is_playing.title}")
-
+        if self.playback.current_video is not None:
+            print(f"Stopping video: {self.playback.current_video.title}")
         print(f"Playing video: {video.title}")
-        self.is_playing = video
-        self.is_paused = False
+        self.playback.video_is_playing(video)
 
     def stop_video(self):
         """Stops the current video."""
-        if self.is_playing == False:
+        if self.playback.current_video == None:
             print("Cannot stop video: No video is currently playing")
             return
         else:
-            print(f"Stopping video: {self.is_playing.title}")
-            self.is_playing = False
-            self.is_paused = True
+            print(f"Stopping video: {self.playback.current_video.title}")
+            self.playback.video_stopped()
 
     def play_random_video(self):
         """Plays a random video from the video library."""
-        if self.is_playing != False:
-            print(f"Stopping video: {self.is_playing.title}")
+        if self.playback.current_video is not None:
+            print(f"Stopping video: {self.playback.current_video.title}")
         video = random.choice(self._video_library.get_all_videos())
         print(f"Playing video: {video.title}")
-        self.is_playing = video
-        self.is_paused = False
+        self.playback.video_is_playing(video)
 
     def pause_video(self):
         """Pauses the current video."""
-        if self.is_playing == False:
+        if self.playback.current_video is None:
             print("Cannot pause video: No video is currently playing")
             return
-        elif self.is_paused == True:
-            print(f"Video already paused: {self.is_playing.title}")
+        elif self.playback.is_paused == True:
+            print(f"Video already paused: {self.playback.current_video.title}")
         else:
-            print(f"Pausing video: {self.is_playing.title}")
-            self.is_paused = True
+            print(f"Pausing video: {self.playback.current_video.title}")
+            self.playback.video_paused()
 
     def continue_video(self):
         """Resumes playing the current video."""
-        if self.is_playing == False:
+        if self.playback.current_video is None:
             print(f"Cannot continue video: No video is currently playing")
             return
-        elif self.is_paused == False:
+        elif self.playback.is_paused == False:
             print(f"Cannot continue video: Video is not paused")
             return
         else:
-            print(f"Continuing video: {self.is_playing.title}")
-            self.is_paused = False
+            print(f"Continuing video: {self.playback.current_video.title}")
+            self.playback.video_paused()
 
     def show_playing(self):
         """Displays video currently playing."""
-        if self.is_playing == False:
+        if self.playback.current_video is None:
             print("No video is currently playing")
             return
-        video = self.is_playing
-        if self.is_paused:
-            print(f"Currently playing: {video.title} ({video.video_id}) [{' '.join(video.tags)}] - PAUSED")
+        video = self.playback.current_video
+        if self.playback.is_paused:
+            print(f"Currently playing: {self.video_string(video)} - PAUSED")
         else:
-            print(f"Currently playing: {video.title} ({video.video_id}) [{' '.join(video.tags)}]")
+            print(f"Currently playing: {self.video_string(video)}")
 
     def playlist_exists(self, playlist_name):
         """Checks whether the playlist exists, returns the playlist if it does, and False otherwise.
@@ -178,7 +176,8 @@ class VideoPlayer:
         else:
             for id in list_videos:
                 video = self._video_library.get_video(id)
-                print(f"{video.title} ({video.video_id}) [{' '.join(video.tags)}]")
+                print(self.video_string(video))
+                # print(f"{video.title} ({video.video_id}) [{' '.join(video.tags)}]")
 
     def remove_from_playlist(self, playlist_name, video_id):
         """Removes a video to a playlist with a given name.
@@ -225,6 +224,8 @@ class VideoPlayer:
         print(f"Deleted playlist: {playlist_name}")
         # print(self.all_playlists.playlists)
 
+    # def search_results(self, ):
+
     def search_videos(self, search_term):
         """Display all the videos whose titles contain the search_term.
         Args:
@@ -241,7 +242,7 @@ class VideoPlayer:
         print(f"Here are the results for {search_term}:")
         count = 1
         for video in matches:
-            print(f"    {count}) {video.title} ({video.video_id}) [{' '.join(video.tags)}]")
+            print(f"    {count}) {self.video_string(video)}]")
             count += 1
         print("Would you like to play any of the above? If yes, specify the number of the video.")
         answer = input(f"If your answer is not a valid number, we will assume it's a no.\n")
@@ -278,7 +279,7 @@ class VideoPlayer:
         print(f"Here are the results for {video_tag}:")
         count = 1
         for video in matches:
-            print(f"    {count}) {video.title} ({video.video_id}) [{' '.join(video.tags)}]")
+            print(f"    {count}) {self.video_string(video)}]")
             count += 1
         print("Would you like to play any of the above? If yes, specify the number of the video.")
         answer = input(f"If your answer is not a valid number, we will assume it's a no.\n")
