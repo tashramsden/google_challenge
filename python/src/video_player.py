@@ -243,11 +243,14 @@ class VideoPlayer:
         for video in matches:
             print(f"    {count}) {video.title} ({video.video_id}) [{' '.join(video.tags)}]")
             count += 1
-        answer = input(f"Would you like to play any of the above? If yes, specify the number of the video.\n"
-                       f"If your answer is not a valid number, we will assume it's a no.\n")
+        print("Would you like to play any of the above? If yes, specify the number of the video.")
+        answer = input(f"If your answer is not a valid number, we will assume it's a no.\n")
         try:
             try:
-                video = matches[int(answer)-1]
+                index = int(answer) - 1
+                if index < 0:
+                    return
+                video = matches[index]
                 self.play_video(video.video_id)
             except IndexError:
                 return
@@ -277,11 +280,14 @@ class VideoPlayer:
         for video in matches:
             print(f"    {count}) {video.title} ({video.video_id}) [{' '.join(video.tags)}]")
             count += 1
-        answer = input(f"Would you like to play any of the above? If yes, specify the number of the video.\n"
-                       f"If your answer is not a valid number, we will assume it's a no.\n")
+        print("Would you like to play any of the above? If yes, specify the number of the video.")
+        answer = input(f"If your answer is not a valid number, we will assume it's a no.\n")
         try:
             try:
-                video = matches[int(answer) - 1]
+                index = int(answer) - 1
+                if index < 0:
+                    return
+                video = matches[index]
                 self.play_video(video.video_id)
             except IndexError:
                 return
