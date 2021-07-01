@@ -255,7 +255,7 @@ class VideoPlayer:
             return
 
     def search_videos_tag(self, video_tag):
-        """Display all videos whose tags contains the provided tag.
+        """Display all videos whose tags contains the provided tag .
         Args:
             video_tag: The video tag to be used in search.
         """
